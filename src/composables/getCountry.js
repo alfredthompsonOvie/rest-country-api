@@ -1,11 +1,18 @@
-// import { ref } from "vue";
+import { ref } from "vue";
 
-const getCountries = async () => {
-  // const countries = ref([]);
+const getCountry = () => {
+  const country = ref([]);
 
-  const data = await fetch('https://restcountries.com/v3.1/all');
+  const loadCountry = async (countryName) => {
+    const res = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+    country.value = await res.json()
+    console.log(country.value);
+  }
 
-  console.log(data);
+  return { country, loadCountry }
 }
 
-export default getCountries
+export default getCountry
+
+
+// https://restcountries.com/v3.1/region/{region}

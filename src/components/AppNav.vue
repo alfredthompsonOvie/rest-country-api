@@ -9,7 +9,7 @@
         class=btn
         v-if="isDarkTheme"
         >
-          <font-awesome-icon icon="fa-regular fa-sun" />
+          <font-awesome-icon icon="fa-solid fa-sun" />
           <span>Light Mode</span>
         </button>
   
@@ -19,7 +19,7 @@
         class=btn
         v-else
         >
-          <font-awesome-icon icon="fa-regular fa-moon" />
+          <font-awesome-icon icon="fa-solid fa-moon" />
           <span>Dark Mode</span>
         </button>
       

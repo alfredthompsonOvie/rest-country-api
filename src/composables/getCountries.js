@@ -1,20 +1,27 @@
 import { ref } from "vue";
 
-const countries = ref([]);
+const getCountries = () => {
+  
+  const countries = ref([]);
+  const error = ref([]);
 
+  const load = async () => {
+    try {
+      const res = await fetch('https://restcountries.com/v3.1/all');
+  
+      if (!res.ok) {
+        throw Error("Something went wrong.")
+      }
+  
+      countries.value = await res.json();
+  
+    } catch (err) {
+      error.value = err.message
+    }
+    
+  }
 
-const getCountries = async () => {
-
-  const res = await fetch('https://restcountries.com/v3.1/all');
-
-  const data = await res.json();
-
-  // countries.value = [ ...data]
-  countries.value = data
-
-  console.log(countries.value);
-
-  // return countries
+  return { countries, error, load }
 }
 
-export { countries, getCountries }
+export default getCountries;
