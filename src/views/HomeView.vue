@@ -1,10 +1,10 @@
 <template>
 	<main :class="isDarkTheme ? 'main__dark' : 'main__light'">
-		<!-- <h1>Home page</h1> -->
 		<section class="search__wrapper">
-			<form>
+			<form @submit.prevent="handleSearch">
 				<label for=""></label>
 				<input
+					v-model="searchInputField"
 					type="search"
 					:class="
 						isDarkTheme
@@ -20,10 +20,13 @@
 				<button
 					class="btn__filter"
 					:class="isDarkTheme ? ['el__dark'] : ['el__light']"
-					@click.prevent="showOptions = !showOptions"
+					@click.prevent="handleClick"
 				>
 					<span>Filter by Region</span>
-					<font-awesome-icon icon="fa-solid fa-angle-down" />
+					<font-awesome-icon
+						icon="fa-solid fa-angle-down"
+						:class="{ animateAngleIcon: showOptions }"
+					/>
 				</button>
 				<ul
 					class="options"
@@ -33,7 +36,7 @@
 					<li
 						v-for="option in filterOptions"
 						:key="option"
-						@click.prevent="filterBy = option"
+						@click.prevent="handleFilter(option)"
 						class="options__item"
 					>
 						{{ option }}
@@ -43,8 +46,8 @@
 		</section>
 
 		<section class="countries__wrapper">
-      <!-- error -->
-			<div class="error" v-if="error.length">
+			<!-- error -->
+			<div class="error" v-if="error">
 				{{ error }}
 			</div>
 
@@ -82,19 +85,19 @@
 					</div>
 				</div>
 			</template>
-      
-      <!-- spinner -->
-      <div
-      v-else> Loading...</div>
+
+			<!-- spinner -->
+			<div v-else>Loading...</div>
 		</section>
 	</main>
 </template>
 
 <script>
-import { ref } from "vue";
-// import { ref, watchEffect, computed } from "vue";
-import getCountries from "@/composables/getCountries";
-// import { countries, getCountries } from "@/composables/getCountries";
+import { ref, watch } from "vue";
+import { gsap } from "gsap";
+// import getCountries from "@/composables/getCountries";
+// import getCountry from "@/composables/getCountry";
+// import getRegion from "@/composables/getRegion";
 
 export default {
 	name: "HomeView",
@@ -114,45 +117,109 @@ export default {
 		]);
 		const filterBy = ref("");
 		const searchInputField = ref("");
+		const countries = ref([]);
+		const error = ref(null);
 
-    const { countries, error, load } = getCountries();
-    // fetch countries
-		load();
-    
-    // const allCountries = countries;
+		const loadCountries = async () => {
+			try {
+				const res = await fetch("https://restcountries.com/v3.1/all");
 
-    // an array of countries
-		const countriesArray = ref([])
+				if (!res.ok) {
+					throw Error("Something went wrong.");
+				}
 
-    // computed display's that array
-    // const displayCountries = computed(() => {
-    //   // just return an array of countries,
-    //   // watchEffect will populate that array
-    //   return countries
-    // })
+				countries.value = await res.json();
+			} catch (err) {
+				error.value = err.message;
+			}
+		};
+		loadCountries();
 
-    // watchEffect watches filterBy for changes,
-    //  if there is any change to filterBy watchEffect fires a function
-    // to fetch data and populate the array of countries
+		const loadCountry = async (countryName) => {
+			const res = await fetch(
+				`https://restcountries.com/v3.1/name/${countryName}`
+			);
+			countries.value = await res.json();
+			// console.log(countries.value);
+		};
 
+		const loadRegion = async (region) => {
+			const res = await fetch(
+				`https://restcountries.com/v3.1/region/${region}`
+			);
+			countries.value = await res.json();
+			// console.log(region.value);
+		};
 
-		// function getImageUrl(name) {
-		//   return new URL(`./dir/${name}.png`, import.meta.url).href
-		// }
-		
-		// watchEffect(() => {
-		// 	console.log(filterBy.value);
-		// 	console.log(allCountries.value);
-		// });
+		watch(searchInputField, (newSearch) => {
+			if (newSearch === "") {
+				loadCountries();
+			} else {
+				console.log(newSearch);
+				loadCountry(newSearch);
+			}
+		});
+
+		watch(filterBy, (newFilter) => {
+			if (newFilter === "") {
+				loadCountries();
+			} else {
+				console.log(newFilter);
+				loadRegion(newFilter);
+			}
+		});
+
+		function handleSearch() {}
+		function handleFilter(opt) {
+			filterBy.value = opt;
+			showOptions.value = false;
+		}
+
+		const handleClick = () => {
+			showOptions.value = !showOptions.value;
+
+			const tl = gsap.timeline({
+				paused: true,
+			});
+
+			tl.fromTo(
+				"options",
+				{
+					clipPath: "circle(0% at 100% 0)",
+				},
+				{
+					clipPath: "circle(141.5% at 100% 0)",
+					duration: 1.2,
+					ease: "bounce",
+				}
+			).from("options__item", {
+				y: 10,
+				autoAlpha: 0.01,
+				stagger: 0.2,
+				ease: "back",
+			});
+
+			if (showOptions.value) {
+				tl.play();
+			} else {
+				tl.reverse(0);
+			}
+		};
 		return {
 			showOptions,
 			filterOptions,
 			filterBy,
 			searchInputField,
+			countries,
+
 			// allCountries,
 			error,
-			countries,
+			// countriesArray
 			// getImageUrl,
+			// displayCountries
+			handleSearch,
+			handleFilter,
+			handleClick,
 		};
 	},
 };
