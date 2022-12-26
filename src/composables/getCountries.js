@@ -2,7 +2,7 @@ import { ref } from "vue";
 
 const getCountries = () => {
   
-  const countries = ref([]);
+  const restCountries = ref([]);
   const error = ref([]);
 
   const load = async () => {
@@ -13,7 +13,7 @@ const getCountries = () => {
         throw Error("Something went wrong.")
       }
   
-      countries.value = await res.json();
+      restCountries.value = await res.json();
   
     } catch (err) {
       error.value = err.message
@@ -21,7 +21,7 @@ const getCountries = () => {
     
   }
 
-  return { countries, error, load }
+  return { restCountries, error, load }
 }
 
 export default getCountries;
