@@ -3,7 +3,7 @@ import { ref } from "vue";
 const getCountries = () => {
   
   const restCountries = ref([]);
-  const error = ref([]);
+  const ApiError = ref([]);
 
   const load = async () => {
     try {
@@ -16,12 +16,15 @@ const getCountries = () => {
       restCountries.value = await res.json();
   
     } catch (err) {
-      error.value = err.message
+      console.log(err.message);
+      ApiError.value = err.message
+		console.log("ApiError", ApiError.value);
+
     }
     
   }
 
-  return { restCountries, error, load }
+  return { restCountries, ApiError, load }
 }
 
 export default getCountries;

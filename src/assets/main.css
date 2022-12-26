@@ -243,6 +243,11 @@ form {
   border-radius: 5px;
 } */
 
+.loadingData {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
 @media (min-width: 600px) {
 	nav,
 	main {

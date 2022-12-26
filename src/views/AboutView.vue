@@ -45,13 +45,11 @@
 			</div>
 		</section>
 
-		<section 
-    class="countries__wrapper"
-    ref="countries__container"
-    >
+		<section class="countries__wrapper" ref="countries__container">
 			<!-- error -->
 			<div class="error" v-if="error">
 				{{ error }}
+				error
 			</div>
 
 			<template v-if="countries.length">
@@ -90,27 +88,23 @@
 			</template>
 
 			<!-- spinner -->
-			<div v-else>Loading...</div>
+			<div v-else class="loadingData">
+				<p >Loading...</p>
+			</div>
 
-      <p class="pCard">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolor animi saepe, voluptatem, cum et veniam error, laboriosam facilis neque fugit</p>
-      <p class="pCard">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolor animi saepe, voluptatem, cum et veniam error, laboriosam facilis neque fugit</p>
 		</section>
 	</main>
 </template>
 
-<style>
-.pCard {
-  width: 270px;
-  height: 363px;
-}
-</style>
 
 <script>
 import { ref, watch, onMounted } from "vue";
 import { gsap } from "gsap";
-// import getCountries from "@/composables/getCountries";
+
+import getCountries from "@/composables/getCountries";
 // import getCountry from "@/composables/getCountry";
 // import getRegion from "@/composables/getRegion";
+
 
 export default {
 	name: "AboutView",
@@ -119,7 +113,7 @@ export default {
 			type: Boolean,
 		},
 	},
-	setup() {
+  setup() {
 		const showOptions = ref(false);
 		const filterOptions = ref([
 			"Africa",
@@ -128,32 +122,76 @@ export default {
 			"Europe",
 			"Oceania",
 		]);
-    const countries__container = ref(null);
+		const countries__container = ref(null);
 		const filterBy = ref("");
 		const searchInputField = ref("");
+
 		const countries = ref([]);
     const error = ref(null);
 
-    // restCountries
-    onMounted(() => {
-      // console.log(countries__container.value);
-      console.log(countries__container.value.getBoundingClientRect());
-    
-      // let containerHeight = ref(countries__container.value.getBoundingClientRect().height);
-      
-      window.addEventListener("scroll", handleScroll)
+		const { restCountries, ApiError, load } = getCountries();
+		load();
+		
 
-    })
-    const handleScroll = () => {
-      const containerHeight = countries__container.value
 
-        if(containerHeight.getBoundingClientRect().bottom < window.innerHeight) {
-          console.log("rock bottom");
-          // load more data
-        }
+
+		// restCountries
+		onMounted(() => {
+			window.addEventListener("scroll", handleScroll);
+		});
+		const handleScroll = () => {
+			const containerHeight = countries__container.value;
+
+			if (containerHeight.getBoundingClientRect().bottom < window.innerHeight) {
+				console.log("rock bottom");
+				//call a function to load more data
+				getRestCountries(countries.value.length, 8);
+			}
+    };
+
+    console.log(countries.value.length);
+    // fill up countries array with some restCountries data
+
+		const getRestCountries = (skip, limit) => {
+			skip = countries.value.length;
+			limit = limit + skip;
+			console.log("limit: ", limit);
+
+      for (let i = skip; i < limit; i++) {
+				countries.value.push(restCountries.value[i])
+			}
+			console.log(countries.value.length);
+			console.log(restCountries.value[0]);
     }
 
-    watch(searchInputField, (newSearch) => {
+
+		watch(restCountries, (newSearch) => {
+			if (newSearch) {
+				// loadCountries();
+				// console.log(restCountries.value);
+				// console.log(restCountries);
+
+				getRestCountries(countries.value.length, 8);
+				console.log("watch countries array ", countries.value.length);
+
+      }
+				// getRestCountries(countries.value.length, 8);
+			// console.log(restCountries.value);
+      
+
+		});
+		watch(ApiError, (newSearch) => {
+			if (newSearch) {
+			error.value = ApiError.value;
+      }
+		});
+		// watchEffect(() => {
+    //   // getRestCountries(countries.value.length, 8);
+		// 	console.log("ApiError", ApiError.value);
+		// 	error.value = ApiError.value;
+			
+		// })
+		watch(searchInputField, (newSearch) => {
 			if (newSearch === "") {
 				// loadCountries();
 			} else {
@@ -169,9 +207,8 @@ export default {
 				console.log(newFilter);
 				// loadRegion(newFilter);
 			}
-    });
+		});
 
-    
 		function handleSearch() {}
 		function handleFilter(opt) {
 			filterBy.value = opt;
@@ -207,7 +244,7 @@ export default {
 			} else {
 				tl.reverse(0);
 			}
-    };
+		};
 
 		// const loadCountries = async () => {
 		// 	try {
@@ -239,8 +276,6 @@ export default {
 		// 	countries.value = await res.json();
 		// 	// console.log(region.value);
 		// };
-
-
 
 		// function handleSearch() {}
 		// function handleFilter(opt) {
@@ -277,9 +312,9 @@ export default {
 		// 	} else {
 		// 		tl.reverse(0);
 		// 	}
-    // };
+		// };
 
-    // watch(searchInputField, (newSearch) => {
+		// watch(searchInputField, (newSearch) => {
 		// 	if (newSearch === "") {
 		// 		loadCountries();
 		// 	} else {
@@ -296,7 +331,7 @@ export default {
 		// 		loadRegion(newFilter);
 		// 	}
 		// });
-    
+
 		return {
 			showOptions,
 			filterOptions,
@@ -311,10 +346,9 @@ export default {
 			// displayCountries
 			handleSearch,
 			handleFilter,
-      handleClick,
-      countries__container
+			handleClick,
+			countries__container,
 		};
 	},
 };
 </script>
-
