@@ -6,7 +6,7 @@ const getCountry = () => {
 
   const loadCountry = async (countryName) => {
     try {
-      const res = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+      const res = await fetch(`https://restcountries.com/v2/name/${countryName}`);
       if (!res.ok) {
         throw Error("Something went wrong");
       }

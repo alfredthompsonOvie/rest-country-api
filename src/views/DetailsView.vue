@@ -1,49 +1,137 @@
 <template>
-  <div 
-  :class="isDarkTheme ? 'main__dark' : 'main__light'"
-  v-if="country.length"
-  >
-    {{ country[0].name.common }}
-    <!-- <img :src="country[0].flags.svg" alt="" /> -->
-  </div>
+	<main :class="isDarkTheme ? 'main__dark' : 'main__light'">
+		<button
+			class="btn btn--Btn btn--back"
+			:class="isDarkTheme ? 'el__dark' : 'el__light'"
+			@click.prevent="back"
+		>
+			<font-awesome-icon icon="fa-solid fa-arrow-left" />
+			<span>Back</span>
+		</button>
+
+		<section class="countryDetails" v-if="country.length">
+      <div class="countryDetails--flag">
+        <img :src="country[0].flags.svg" alt="" />
+      </div>
+
+			<section class="countryDetails__contents">
+				<h1 class="card__title">{{ country[0].name }}</h1>
+				<div class="details">
+					<ul class="contents__list">
+						<li class="card__details">
+							Native Name: 
+              <span class="card__content--result"
+              >
+                {{ country[0].nativeName }}
+              </span>
+						</li>
+
+						<li class="card__details">
+							Population: <span class="card__content--result">
+                {{ country[0].population }}
+              </span>
+						</li>
+						<li class="card__details">
+							Region: <span class="card__content--result">
+                {{ country[0].region }}
+              </span>
+						</li>
+						<li class="card__details">
+							Sub Region: <span class="card__content--result">
+                {{ country[0].subregion }}
+              </span>
+						</li>
+						<li class="card__details">
+							Capital:
+              <span class="card__content--result">
+                {{ country[0].capital }}
+              </span>
+
+						</li>
+					</ul>
+					<ul class="contents__list">
+						<li class="card__details">
+							Top Level Domain:
+              <span class="card__content--result">
+                {{ country[0].topLevelDomain[0] }}
+              </span>
+						</li>
+						<li class="card__details">
+							Currencies:
+              <span class="card__content--result"
+              >
+                {{ country[0].currencies[0].code }}
+              </span>
+						</li>
+						<li class="card__details lang">
+							<!-- for loop -->
+							Languages: 
+              <span 
+              class="card__content--result "
+              v-for="lang in country[0].languages" 
+              :key="lang"
+              > {{ lang.name }} </span>
+						</li>
+					</ul>
+				</div>
+				<div 
+        class="country__borders"
+        v-if="country[0].borders"
+        >
+        <p>Border Countries:</p>
+					<ul class="country__borders--lists">
+						<!-- for loop -->
+						<li
+							class="btn--Btn border--btn"
+							:class="isDarkTheme ? 'el__dark' : 'el__light'"
+              v-for="borders in country[0].borders" 
+              :key="borders"
+						> {{ borders }}</li>
+					</ul>
+				</div>
+			</section>
+		</section>
+
+	</main>
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import getCountry from "@/composables/getCountry";
 
 export default {
-  name: "detailsView",
-  props: {
-    id: {
-      type: String,
-      required: true
-    },
-    isDarkTheme: {
-      type: Boolean,
-    },
-  },
-  setup(props) {
-    const countryName = ref(props.id);
-    console.log(countryName.value);
+	name: "detailsView",
+	props: {
+		id: {
+			type: String,
+			required: true,
+		},
+		isDarkTheme: {
+			type: Boolean,
+		},
+	},
+	setup(props) {
+		const countryName = ref(props.id);
+		const router = useRouter();
+		const back = () => router.go(-1);
+		console.log(countryName.value);
 
-    const { country, loadCountry } = getCountry();
-    loadCountry(countryName.value)
-    console.log(country.value);
+		const { country, loadCountry } = getCountry();
+		loadCountry(countryName.value);
+		console.log(country.value);
 
-    watch(country, () => {
-      // console.log(country);
-    console.log(country.value);
-    console.log(country.value.length);
-
-    } )
-    return {
-      country
-    }
-  }
-}
+		watch(country, () => {
+			// console.log(country);
+			console.log(country.value);
+			// console.log(country.value.length);
+    });
+		return {
+			country,
+      back,
+		};
+	},
+};
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

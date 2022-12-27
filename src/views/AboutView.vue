@@ -135,11 +135,12 @@ export default {
 		const countries = ref([]);
 		const error = ref(null);
 
+		// restCountries
 		const { restCountries, ApiError, load } = getCountries();
 		load();
 
-		// restCountries
 		onMounted(() => {
+		load();
 			window.addEventListener("scroll", handleScroll);
 		});
 		onUnmounted(() => {
@@ -156,27 +157,22 @@ export default {
 		};
 	
 
-		console.log(countries.value.length);
+		// console.log(countries.value.length);
 		// fill up countries array with some restCountries data
-
 		const getRestCountries = (skip, limit) => {
 			skip = countries.value.length;
 			limit = limit + skip;
-			console.log("limit: ", limit);
+			// console.log("limit: ", limit);
 
 			for (let i = skip; i < limit; i++) {
 				countries.value.push(restCountries.value[i]);
 			}
-			console.log(countries.value.length);
-			console.log(restCountries.value[0]);
+			// console.log(countries.value.length);
+			// console.log(restCountries.value[0]);
 		};
 
 		watch(restCountries, (newSearch) => {
 			if (newSearch) {
-				// loadCountries();
-				// console.log(restCountries.value);
-				// console.log(restCountries);
-
 				getRestCountries(countries.value.length, 8);
 				console.log("watch countries array ", countries.value.length);
 			}
@@ -188,12 +184,8 @@ export default {
 				error.value = ApiError.value;
 			}
 		});
-		// watchEffect(() => {
-		//   // getRestCountries(countries.value.length, 8);
-		// 	console.log("ApiError", ApiError.value);
-		// 	error.value = ApiError.value;
 
-		// })
+		//!todo => search field and filterBy functionality 
 		watch(searchInputField, (newSearch) => {
 			if (newSearch === "") {
 				// loadCountries();
@@ -218,6 +210,7 @@ export default {
 			showOptions.value = false;
 		}
 
+		// change the name to a more descriptive name
 		const handleClick = () => {
 			showOptions.value = !showOptions.value;
 

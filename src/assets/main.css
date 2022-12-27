@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;600;800&display=swap');
+
 :root {
 	/* - Family: [Nunito Sans](https://fonts.google.com/specimen/Nunito+Sans) */
 	--ff: "Nunito Sans", sans-serif;
@@ -65,14 +67,6 @@ nav {
 }
 /* el__dark */
 .nav__dark {
-	--DarkBlue-DarkModeElements: hsl(209, 23%, 22%);
-	--VeryDarkBlue-DarkModeBackground: hsl(207, 26%, 17%);
-	--VeryDarkBlue-LightModeText: hsl(200, 15%, 8%);
-
-	--DarkGray-LightModeInput: hsl(0, 0%, 52%);
-	--VeryLightGray-LightModeBackground: hsl(0, 0%, 98%);
-	--White-DarkModeText-LightModeElements: hsl(0, 0%, 100%);
-
 	background-color: var(--DarkBlue-DarkModeElements);
 	color: var(--White-DarkModeText-LightModeElements);
 }
@@ -95,7 +89,7 @@ nav {
 .btn {
 	display: flex;
 	align-items: center;
-	gap: 0.5em;
+	gap: 0.5em;	
 }
 
 form {
@@ -229,29 +223,83 @@ form {
 .card__title {
 	margin-bottom: 0.7em;
 }
-
 .card__content--result {
 	color: var(--DarkGray-LightModeInput);
 }
-
-/* .backBtnContainer {
-  display: inline-block;
-  margin-top: 2em;
+.btn--Btn {
+	justify-content: center;
+  
+  padding: .7em 2em;
   border-radius: 5px;
+	font-size: .85rem;
+} 
+.btn--back:hover .fa-arrow-left {
+	animation: move-left 1s linear infinite;
 }
-.backBtn{
-  display: flex;
-  align-items: center;
-  gap: .6em;
-  padding: .7em 1em;
-  border-radius: 5px;
-} */
-
+@keyframes move-left {
+	from {
+		transform: scale(1) translateX(0);
+	}
+	to {
+		transform: scale(1.2) translateX(-5px);
+	}
+}
 .loadingData {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
+
+/** ===============================================*/
+/** ===============================================*/
+/*? ------------- Details page --------------------*/
+/** ===============================================*/
+/** ===============================================*/
+
+.countryDetails {
+	margin: 2.5em 0;
+}
+.countryDetails--flag {
+	height: 17em;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+.countryDetails--flag img {
+	width: inherit;
+	height: inherit;
+	object-position: center;
+}
+.contents__list  {
+	margin-bottom: 2em;
+}
+.countryDetails__contents {
+	margin-top: 2em;
+}
+.country__borders--lists {
+	display: flex;
+	align-items: center;
+	gap: .5em;
+	flex-wrap: wrap;
+	margin: 1em 0;
+	/* border: 1px solid red; */
+
+}
+.lang {
+	display: flex;
+	gap: .5em;
+}
+.border--btn {
+	padding: .4em 2em;
+}
+/*! ---- -- -- -  ---  --  - -- -- -- -  ---  --  -  */
+/*! ---- -- -- -  ---  --  - -- -- -- -  ---  --  -  */
+/** =======> ~> ==========><=========~ ~============>*/
+/*? -------------> Media Queries <-----------------*/
+/** |==~>====| ~~>|=====| <~~ >========<~~>========|*/
+/*? ---- -- -- ~~ -  ~~~  - ~~ -- ~~ -- ~  --  --   */
+/*? ---- -- -- ~~ -  ~~~  - ~~ -- ~~ -- ~  --  --   */
+
 @media (min-width: 600px) {
 	nav,
 	main {
@@ -268,5 +316,42 @@ form {
 	.countries__wrapper {
 		grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
 		justify-content: space-between;
+	}
+	.countryDetails {
+		display: flex;
+		justify-content: space-between;
+		gap: 2em;
+	}
+	.countryDetails__contents {
+		align-self: center;
+		margin: 0;
+	}
+	.details {
+		display: flex;
+		justify-content: space-between;
+	}
+	.country__borders {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 1em;
+	}
+}
+@media (min-width: 1200px)  {
+	.countryDetails--flag {
+		height: 20em;
+	}
+	nav,
+	main {
+		padding-inline: 4em;
+	}
+}
+@media (min-width: 1300px)  {
+	.countryDetails--flag {
+		height: 23em;
+	}
+	nav,
+	main {
+		padding-inline: 4em;
 	}
 }
