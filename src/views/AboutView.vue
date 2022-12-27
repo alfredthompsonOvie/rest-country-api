@@ -57,54 +57,60 @@
 					class="card"
 					:class="isDarkTheme ? 'el__dark' : 'el__light'"
 					v-for="country in countries"
-					:key="country.name"
+					:key="country.name.common"
 				>
-					<div class="flag">
-						<img :src="country.flags.svg" alt="" />
-					</div>
-					<div class="card__contents">
-						<h3 class="card__title">{{ country.name.common }}</h3>
-						<p class="card__details">
-							Population:
-							<span class="card__content--result">{{
-								country.population
-							}}</span>
-						</p>
-						<p class="card__details">
-							Region:
-							<span class="card__content--result">{{ country.region }}</span>
-						</p>
-						<p class="card__details">
-							Capital:
-							<span
-								class="card__content--result"
-								v-for="capital in country.capital"
-								:key="capital"
-								>{{ capital }}</span
-							>
-						</p>
-					</div>
+					<router-link
+						:to="{
+							name: 'detailsView',
+							params: {
+								id: country.name.common,
+							},
+						}"
+					>
+						<div class="flag">
+							<img :src="country.flags.svg" alt="" />
+						</div>
+						<div class="card__contents">
+							<h3 class="card__title">{{ country.name.common }}</h3>
+							<p class="card__details">
+								Population:
+								<span class="card__content--result">{{
+									country.population
+								}}</span>
+							</p>
+							<p class="card__details">
+								Region:
+								<span class="card__content--result">{{ country.region }}</span>
+							</p>
+							<p class="card__details">
+								Capital:
+								<span
+									class="card__content--result"
+									v-for="capital in country.capital"
+									:key="capital"
+									>{{ capital }}</span
+								>
+							</p>
+						</div>
+					</router-link>
 				</div>
 			</template>
 
 			<!-- spinner -->
 			<div v-else class="loadingData">
-				<p >Loading...</p>
+				<p>Loading...</p>
 			</div>
-
 		</section>
 	</main>
 </template>
 
-
 <script>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { gsap } from "gsap";
 
 import getCountries from "@/composables/getCountries";
 // import getCountry from "@/composables/getCountry";
 // import getRegion from "@/composables/getRegion";
-
 
 export default {
 	name: "AboutView",
@@ -113,7 +119,7 @@ export default {
 			type: Boolean,
 		},
 	},
-  setup() {
+	setup() {
 		const showOptions = ref(false);
 		const filterOptions = ref([
 			"Africa",
@@ -127,17 +133,17 @@ export default {
 		const searchInputField = ref("");
 
 		const countries = ref([]);
-    const error = ref(null);
+		const error = ref(null);
 
 		const { restCountries, ApiError, load } = getCountries();
 		load();
-		
-
-
 
 		// restCountries
 		onMounted(() => {
 			window.addEventListener("scroll", handleScroll);
+		});
+		onUnmounted(() => {
+			window.removeEventListener("scroll", handleScroll);
 		});
 		const handleScroll = () => {
 			const containerHeight = countries__container.value;
@@ -147,23 +153,23 @@ export default {
 				//call a function to load more data
 				getRestCountries(countries.value.length, 8);
 			}
-    };
+		};
+	
 
-    console.log(countries.value.length);
-    // fill up countries array with some restCountries data
+		console.log(countries.value.length);
+		// fill up countries array with some restCountries data
 
 		const getRestCountries = (skip, limit) => {
 			skip = countries.value.length;
 			limit = limit + skip;
 			console.log("limit: ", limit);
 
-      for (let i = skip; i < limit; i++) {
-				countries.value.push(restCountries.value[i])
+			for (let i = skip; i < limit; i++) {
+				countries.value.push(restCountries.value[i]);
 			}
 			console.log(countries.value.length);
 			console.log(restCountries.value[0]);
-    }
-
+		};
 
 		watch(restCountries, (newSearch) => {
 			if (newSearch) {
@@ -173,23 +179,20 @@ export default {
 
 				getRestCountries(countries.value.length, 8);
 				console.log("watch countries array ", countries.value.length);
-
-      }
-				// getRestCountries(countries.value.length, 8);
+			}
+			// getRestCountries(countries.value.length, 8);
 			// console.log(restCountries.value);
-      
-
 		});
 		watch(ApiError, (newSearch) => {
 			if (newSearch) {
-			error.value = ApiError.value;
-      }
+				error.value = ApiError.value;
+			}
 		});
 		// watchEffect(() => {
-    //   // getRestCountries(countries.value.length, 8);
+		//   // getRestCountries(countries.value.length, 8);
 		// 	console.log("ApiError", ApiError.value);
 		// 	error.value = ApiError.value;
-			
+
 		// })
 		watch(searchInputField, (newSearch) => {
 			if (newSearch === "") {
