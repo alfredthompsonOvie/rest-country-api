@@ -3,6 +3,7 @@
 		<section class="search__wrapper">
 			<form @submit.prevent="handleSearch">
 				<label for=""></label>
+				
 				<input
 					v-model="searchInputField"
 					type="search"
@@ -15,6 +16,21 @@
 				/>
 				<font-awesome-icon icon="fa-solid fa-magnifying-glass" />
 			</form>
+			<!-- <div class="form__control">
+				<label for=""></label>
+				
+				<input
+					v-model="searchInputField"
+					type="search"
+					:class="
+						isDarkTheme
+							? ['el__dark', 'input__dark']
+							: ['el__light', 'input__light']
+					"
+					placeholder="Search for a country..."
+				/>
+				<font-awesome-icon icon="fa-solid fa-magnifying-glass" />
+			</div> -->
 
 			<div class="filter__dropdown">
 				<button
@@ -45,10 +61,11 @@
 			</div>
 		</section>
 
-		<section class="countries__wrapper">
+		<section class="countries__wrapper" ref="countries__container">
 			<!-- error -->
-			<div class="error" v-if="error">
+			<div class="error loadingData" v-if="error">
 				{{ error }}
+				error
 			</div>
 
 			<template v-if="countries.length">
@@ -58,46 +75,58 @@
 					v-for="country in countries"
 					:key="country.name"
 				>
-					<div class="flag">
-						<img :src="country.flags.svg" alt="" />
-					</div>
-					<div class="card__contents">
-						<h3 class="card__title">{{ country.name.common }}</h3>
-						<p class="card__details">
-							Population:
-							<span class="card__content--result">{{
-								country.population
-							}}</span>
-						</p>
-						<p class="card__details">
-							Region:
-							<span class="card__content--result">{{ country.region }}</span>
-						</p>
-						<p class="card__details">
-							Capital:
-							<span
-								class="card__content--result"
-								v-for="capital in country.capital"
-								:key="capital"
-								>{{ capital }}</span
-							>
-						</p>
-					</div>
+					<router-link
+						:to="{
+							name: 'detailsView',
+							params: {
+								id: country.name,
+							},
+						}"
+					>
+						<div class="flag">
+							<img :src="country.flags.svg" alt="" />
+						</div>
+						<div class="card__contents">
+							<h3 class="card__title">{{ country.name }}</h3>
+							<p class="card__details">
+								Population:
+								<span class="card__content--result">{{
+									country.population
+								}}</span>
+							</p>
+							<p class="card__details">
+								Region:
+								<span class="card__content--result">{{ country.region }}</span>
+							</p>
+							<p class="card__details">
+								Capital:
+								<span
+									class="card__content--result"
+									>{{ country.capital }}</span
+									>
+									<!-- v-for="capital in country.capital"
+									:key="capital" -->
+							</p>
+						</div>
+					</router-link>
 				</div>
 			</template>
 
 			<!-- spinner -->
-			<div v-else>Loading...</div>
+			<!-- <div v-else class="loadingData">
+				<p>Loading...</p>
+			</div> -->
 		</section>
 	</main>
 </template>
 
 <script>
-import { ref, watch } from "vue";
-import { gsap } from "gsap";
-// import getCountries from "@/composables/getCountries";
-// import getCountry from "@/composables/getCountry";
-// import getRegion from "@/composables/getRegion";
+import { ref, watch, onMounted, onUnmounted } from "vue";
+// import { gsap } from "gsap";
+
+import getCountries from "@/composables/getCountries";
+import getCountry from "@/composables/getCountry";
+import getRegion from "@/composables/getRegion";
 
 export default {
 	name: "HomeView",
@@ -115,96 +144,130 @@ export default {
 			"Europe",
 			"Oceania",
 		]);
+		const countries__container = ref(null);
 		const filterBy = ref("");
 		const searchInputField = ref("");
+
+		// countries to render
 		const countries = ref([]);
 		const error = ref(null);
 
-		const loadCountries = async () => {
-			try {
-				const res = await fetch("https://restcountries.com/v3.1/all");
+		// restCountries
+		const { restCountries, ApiError, loadAllCountries } = getCountries();
 
-				if (!res.ok) {
-					throw Error("Something went wrong.");
-				}
+		// const { country, apiCountryError, loadCountry } = getCountry()
 
-				countries.value = await res.json();
-			} catch (err) {
-				error.value = err.message;
+		// const { region, loadRegion } = getRegion();
+
+		onMounted(() => {
+			loadAllCountries();
+			window.addEventListener("scroll", handleScroll);
+		// 	fetch(`https://restcountries.com/v2/region/africa`)
+		// 		.then((res) => res.json())
+		// 		.then(data => console.log(data))
+		});
+		onUnmounted(() => {
+			window.removeEventListener("scroll", handleScroll);
+		});
+
+		const handleScroll = () => {
+			const containerHeight = countries__container.value;
+
+			if (containerHeight.getBoundingClientRect().bottom < window.innerHeight && searchInputField.value === '' && filterBy.value ===  '') {
+				console.log("rock bottom");
+				//load more data
+				countriesToRender(countries.value.length, 8, restCountries.value);
+			}
+			if (containerHeight.getBoundingClientRect().bottom < window.innerHeight && searchInputField.value === '' && filterBy.value) {
+				console.log("rock bottom");
+				//load more data
+				countriesToRender(countries.value.length, 8, countries.value);
 			}
 		};
-		loadCountries();
 
-		const loadCountry = async (countryName) => {
-			const res = await fetch(
-				`https://restcountries.com/v3.1/name/${countryName}`
-			);
-			countries.value = await res.json();
-			// console.log(countries.value);
+
+		// fill up countries array with some restCountries data
+		const countriesToRender = (skip, limit, array) => {
+			skip = countries.value.length;
+			limit += skip;
+			// console.log("limit: ", limit);
+			// countries.value = array.filter((el, idx, arr)=> arr[idx])
+
+			for (let i = skip; i < limit; i++) {
+				countries.value.push(array[i]);
+				// countries.value.push(restCountries.value[i]);
+			}
+			// remove every sparce array elements
+			countries.value = countries.value.filter(c => c);
 		};
 
-		const loadRegion = async (region) => {
-			const res = await fetch(
-				`https://restcountries.com/v3.1/region/${region}`
-			);
-			countries.value = await res.json();
-			// console.log(region.value);
-		};
+		// INITIAL RENDER ON PAGE LOAD
+		watch(restCountries, (newSearch) => {
+			if (newSearch) {
+				countriesToRender(countries.value.length, 8, restCountries.value);
+				// console.log("watch countries array ", countries.value.length);
+			}
+		});
+		watch(ApiError, (newSearch) => {
+			if (newSearch) {
+				error.value = ApiError.value;
+			}
+		});
 
+		// FILTER BY SEARCH
 		watch(searchInputField, (newSearch) => {
-			if (newSearch === "") {
-				loadCountries();
-			} else {
-				console.log(newSearch);
-				loadCountry(newSearch);
+			if (newSearch === '') {
+				countries.value = [];
+				countriesToRender(countries.value.length, 8, restCountries.value);
+			}
+			if (newSearch) {
+				filterBy.value = "";
+				const searchCountry = restCountries.value.filter((c) => {
+					return c.name.toLowerCase().includes(searchInputField.value)
+				})
+				countries.value = [];
+				countriesToRender(countries.value.length, 8, searchCountry);
 			}
 		});
 
-		watch(filterBy, (newFilter) => {
-			if (newFilter === "") {
-				loadCountries();
-			} else {
-				console.log(newFilter);
-				loadRegion(newFilter);
+		// FILTER BY REGION
+		watch(filterBy, (newVal) => {
+			// if (newSearch === '') {
+			// 	countries.value = [];
+			// 	countriesToRender(countries.value.length, 8, restCountries.value);
+			// }
+			if (newVal) {
+				const filterCountry = restCountries.value.filter((c) => {
+					return c.region === newVal
+				})
+				countries.value = [];
+				countriesToRender(countries.value.length, 8, filterCountry);
 			}
 		});
 
-		function handleSearch() {}
+
+
+
+
+
+
+
 		function handleFilter(opt) {
 			filterBy.value = opt;
 			showOptions.value = false;
 		}
 
+		// change the name to a more descriptive name
 		const handleClick = () => {
 			showOptions.value = !showOptions.value;
 
-			const tl = gsap.timeline({
-				paused: true,
-			});
-
-			tl.fromTo(
-				"options",
-				{
-					clipPath: "circle(0% at 100% 0)",
-				},
-				{
-					clipPath: "circle(141.5% at 100% 0)",
-					duration: 1.2,
-					ease: "bounce",
-				}
-			).from("options__item", {
-				y: 10,
-				autoAlpha: 0.01,
-				stagger: 0.2,
-				ease: "back",
-			});
-
-			if (showOptions.value) {
-				tl.play();
-			} else {
-				tl.reverse(0);
-			}
 		};
+		const handleSearch = () => {
+			// console.log(searchInputField.value);
+		}
+
+
+
 		return {
 			showOptions,
 			filterOptions,
@@ -212,14 +275,12 @@ export default {
 			searchInputField,
 			countries,
 
-			// allCountries,
 			error,
-			// countriesArray
-			// getImageUrl,
-			// displayCountries
+
 			handleSearch,
 			handleFilter,
 			handleClick,
+			countries__container,
 		};
 	},
 };

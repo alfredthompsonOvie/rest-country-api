@@ -282,8 +282,6 @@ form {
 	gap: .5em;
 	flex-wrap: wrap;
 	margin: 1em 0;
-	/* border: 1px solid red; */
-
 }
 .lang {
 	display: flex;
@@ -329,6 +327,7 @@ form {
 	.details {
 		display: flex;
 		justify-content: space-between;
+		gap: 1em;
 	}
 	.country__borders {
 		display: flex;

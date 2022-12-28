@@ -3,6 +3,7 @@
 		<section class="search__wrapper">
 			<form @submit.prevent="handleSearch">
 				<label for=""></label>
+				<!-- v-model.lazy="searchInputField" -->
 				<input
 					v-model="searchInputField"
 					type="search"
@@ -57,13 +58,13 @@
 					class="card"
 					:class="isDarkTheme ? 'el__dark' : 'el__light'"
 					v-for="country in countries"
-					:key="country.name.common"
+					:key="country.name"
 				>
 					<router-link
 						:to="{
 							name: 'detailsView',
 							params: {
-								id: country.name.common,
+								id: country.name,
 							},
 						}"
 					>
@@ -71,7 +72,7 @@
 							<img :src="country.flags.svg" alt="" />
 						</div>
 						<div class="card__contents">
-							<h3 class="card__title">{{ country.name.common }}</h3>
+							<h3 class="card__title">{{ country.name }}</h3>
 							<p class="card__details">
 								Population:
 								<span class="card__content--result">{{
@@ -86,10 +87,10 @@
 								Capital:
 								<span
 									class="card__content--result"
-									v-for="capital in country.capital"
-									:key="capital"
-									>{{ capital }}</span
-								>
+									>{{ country.capital }}</span
+									>
+									<!-- v-for="capital in country.capital"
+									:key="capital" -->
 							</p>
 						</div>
 					</router-link>
@@ -109,7 +110,7 @@ import { ref, watch, onMounted, onUnmounted } from "vue";
 import { gsap } from "gsap";
 
 import getCountries from "@/composables/getCountries";
-// import getCountry from "@/composables/getCountry";
+import getCountry from "@/composables/getCountry";
 // import getRegion from "@/composables/getRegion";
 
 export default {
@@ -132,15 +133,17 @@ export default {
 		const filterBy = ref("");
 		const searchInputField = ref("");
 
+		// countries to render
 		const countries = ref([]);
 		const error = ref(null);
 
 		// restCountries
-		const { restCountries, ApiError, load } = getCountries();
-		load();
+		const { restCountries, ApiError, loadAllCountries } = getCountries();
+
+		const { country, apiCountryError, loadCountry } = getCountry()
 
 		onMounted(() => {
-		load();
+			loadAllCountries();
 			window.addEventListener("scroll", handleScroll);
 		});
 		onUnmounted(() => {
@@ -152,59 +155,106 @@ export default {
 			if (containerHeight.getBoundingClientRect().bottom < window.innerHeight) {
 				console.log("rock bottom");
 				//call a function to load more data
-				getRestCountries(countries.value.length, 8);
+				countriesToRender(countries.value.length, 8, restCountries.value);
 			}
 		};
-	
 
-		// console.log(countries.value.length);
+
 		// fill up countries array with some restCountries data
-		const getRestCountries = (skip, limit) => {
+		const countriesToRender = (skip, limit, array) => {
 			skip = countries.value.length;
 			limit = limit + skip;
 			// console.log("limit: ", limit);
+			// countries.value = array.filter((el, idx, arr)=> arr[idx])
 
 			for (let i = skip; i < limit; i++) {
-				countries.value.push(restCountries.value[i]);
+				countries.value.push(array[i]);
+				// countries.value.push(restCountries.value[i]);
 			}
-			// console.log(countries.value.length);
-			// console.log(restCountries.value[0]);
 		};
 
+		// INITIAL RENDER 
 		watch(restCountries, (newSearch) => {
 			if (newSearch) {
-				getRestCountries(countries.value.length, 8);
+				countriesToRender(countries.value.length, 8, restCountries.value);
 				console.log("watch countries array ", countries.value.length);
 			}
-			// getRestCountries(countries.value.length, 8);
-			// console.log(restCountries.value);
 		});
 		watch(ApiError, (newSearch) => {
 			if (newSearch) {
 				error.value = ApiError.value;
 			}
 		});
+		// watch(apiCountryError, (newSearch) => {
+		// 	if (newSearch) {
+		// 		error.value = apiCountryError.value;
+		// 	}
+		// });
 
-		//!todo => search field and filterBy functionality 
-		watch(searchInputField, (newSearch) => {
-			if (newSearch === "") {
-				// loadCountries();
+		// const renderCountry = async (search) => {
+		// 	await loadCountry(search);
+		// 	return countries.value = country.value
+		// }
+		//!todo => search field and filterBy functionality
+		// watch(searchInputField, (newSearch) => {
+		// 	if (newSearch === "") {
+		// 		loadAllCountries();
+		// 	} else {
+		// 		// loadCountry(newSearch);
+		// 		// countries.value = country.value
+		// 		renderCountry(newSearch)
+		// 	}
+		// });
+
+		// watch(filterBy, (newFilter) => {
+		// 	loadRegion(newFilter);
+		// });
+
+		const handleSearch = async (countryName) => {
+			// console.log(searchInputField.value);
+			// const restCountry = ref([]);
+			// try {
+			// 	const res = await fetch(
+			// 		`https://restcountries.com/v3.1/name/${countryName}`
+			// 	);
+			// 	if (!res.ok) {
+			// 		throw Error("Something went wrong");
+			// 	}
+			// 	return restCountry.value = await res.json();
+			// } catch (err) {
+			// 	ApiError.value = err.message;
+			// 	console.log(err);
+			// }
+			console.log(searchInputField.value);
+		}
+
+		watch(searchInputField, async (newVal) => {
+			if (newVal === '') {
+				countries.value = [];
+				countriesToRender(countries.value.length, 8, restCountries.value);
 			} else {
-				console.log(newSearch);
-				// loadCountry(newSearch);
+				countries.value = [];
+				await loadCountry(searchInputField.value);
+				countriesToRender(countries.value.length, 8, country.value);
+				// // const searchCountry = ref([])
+				console.log("country: ", country.value);
+				console.log("countries: ", countries.value);
+				console.log(newVal);
+				console.log(searchInputField.value);
+	
+				// searchCountry.value = restCountries.value.filter(country => {
+				// 	return country.name.common.toLowerCase() === newVal
+				// })
+				// console.log(searchCountry.value);
+				// countries.value = searchCountry.value;
+				// countriesToRender(countries.value.length, 8, searchCountry.value);
+				
+				// countriesToRender(countries.value.length, 8, handleSearch(newVal));
 			}
-		});
+		})
 
-		watch(filterBy, (newFilter) => {
-			if (newFilter === "") {
-				// loadCountries();
-			} else {
-				console.log(newFilter);
-				// loadRegion(newFilter);
-			}
-		});
 
-		function handleSearch() {}
+
 		function handleFilter(opt) {
 			filterBy.value = opt;
 			showOptions.value = false;
