@@ -28,7 +28,7 @@
 
 						<li class="card__details">
 							Population: <span class="card__content--result">
-                {{ country[0].population }}
+                {{ country[0].population.toLocaleString("en-US") }}
               </span>
 						</li>
 						<li class="card__details">
