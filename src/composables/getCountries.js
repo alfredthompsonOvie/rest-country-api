@@ -14,13 +14,9 @@ const getCountries = () => {
       }
   
       restCountries.value = await res.json();
-      // console.log(restCountries.value);
   
     } catch (err) {
-      // console.log(err.message);
       ApiError.value = err.message
-		// console.log("ApiError", ApiError.value);
-
     }
     
   }
