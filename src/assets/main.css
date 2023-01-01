@@ -361,3 +361,11 @@ form {
 		padding-inline: 4em;
 	}
 }
+
+.fade-enter-from, .fade-enter-to {
+	opacity: 0;
+	transform: translateY(-1-px);
+}
+.fade-enter-active, .fade-leave-active {
+	transition: all .3s linear;
+}

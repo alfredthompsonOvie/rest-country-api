@@ -10,6 +10,15 @@
 		</button>
 
 		<section class="countryDetails" v-if="country.length">
+			<transition
+			@before-enter="onBeforeEnter"
+			@enter="onEnter"
+			@before-leave="onBeforeLeave"
+			@leave="onLeave"
+			:css="false"
+			>
+			
+			</transition>
 			<div class="countryDetails--flag">
 				<img :src="country[0].flags.svg" alt="" />
 			</div>
@@ -119,9 +128,27 @@ export default {
 		const { country, loadCountry } = getCountry();
 		loadCountry(countryName.value);
 
+
+		const onBeforeEnter = () => {
+			
+		}
+		const onEnter = () => {
+			
+		}
+		const onBeforeLeave = () => {
+			
+		}
+		const onLeave = () => {
+			
+		}
 		return {
 			country,
 			back,
+			onBeforeEnter,
+			onEnter,
+			onBeforeLeave,
+			onLeave,
+
 		};
 	},
 };

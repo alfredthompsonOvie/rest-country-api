@@ -27,7 +27,37 @@
 						:class="{ animateAngleIcon: showOptions }"
 					/>
 				</button>
-				<ul
+				<!-- tag="ul"
+				name="fade" -->
+				<!-- class="options"
+				:class="isDarkTheme ? ['el__dark'] : ['el__light']" -->
+				<!-- v-if="showOptions" -->
+				<TransitionGroup
+					appear
+					@before-enter="onBeforeEnter"
+					@enter="onEnter"
+					@before-leave="onBeforeLeave"
+					@leave="onLeave"
+					:css="false"
+				>
+					<ul
+						class="options"
+						:class="isDarkTheme ? ['el__dark'] : ['el__light']"
+						v-if="showOptions"
+					>
+						<li
+							v-for="(option, idx) in filterOptions"
+							:key="option"
+							@click.prevent="handleFilter(option)"
+							class="options__item"
+							:data-index="idx"
+						>
+							{{ option }}
+						</li>
+					</ul>
+				</TransitionGroup>
+
+				<!-- <ul
 					class="options"
 					:class="isDarkTheme ? ['el__dark'] : ['el__light']"
 					v-if="showOptions"
@@ -40,12 +70,11 @@
 					>
 						{{ option }}
 					</li>
-				</ul>
+				</ul> -->
 			</div>
 		</section>
 
 		<section class="countries__wrapper" ref="countries__container">
-
 			<div class="error loadingData" v-if="error">
 				{{ error }}
 			</div>
@@ -109,6 +138,7 @@ import { ref, watch, onMounted, onUnmounted } from "vue";
 import getCountries from "@/composables/getCountries";
 import Tilt from "vanilla-tilt-vue";
 
+import { gsap } from "gsap";
 
 export default {
 	name: "HomeView",
@@ -154,7 +184,8 @@ export default {
 			const countriesContainer = countries__container.value;
 
 			if (
-				countriesContainer.getBoundingClientRect().bottom < window.innerHeight &&
+				countriesContainer.getBoundingClientRect().bottom <
+					window.innerHeight &&
 				searchInputField.value === "" &&
 				filterBy.value === ""
 			) {
@@ -162,7 +193,8 @@ export default {
 				countriesToRender(countries.value.length, 8, restCountries.value);
 			}
 			if (
-				countriesContainer.getBoundingClientRect().bottom < window.innerHeight &&
+				countriesContainer.getBoundingClientRect().bottom <
+					window.innerHeight &&
 				searchInputField.value === "" &&
 				filterBy.value
 			) {
@@ -208,15 +240,14 @@ export default {
 					return c.name.toLowerCase().includes(searchInputField.value);
 				});
 				countries.value = [];
-				if(!searchCountry.length) {
-					error.value = "Country not found"
+				if (!searchCountry.length) {
+					error.value = "Country not found";
 					console.log("not found");
 				}
 				if (searchCountry.length) {
 					error.value = "";
 					countriesToRender(countries.value.length, 8, searchCountry);
 				}
-				
 			}
 		});
 
@@ -237,7 +268,73 @@ export default {
 			showOptions.value = false;
 			searchInputField.value = "";
 		}
-		const handleSearch = () => {
+		const handleSearch = () => {};
+
+		//
+		const animateDropDown = () => {
+			const tl = gsap.timeline({
+				defaults: {
+					ease: "expo",
+				},
+				paused: true,
+			});
+
+			tl.to(".options", {
+				opacity: 1,
+				y: 0,
+			}).to(
+				".options__item",
+				{
+					opacity: 1,
+					y: 0,
+					stagger: 0.2,
+					// onComplete: done,
+				},
+				"<0.5"
+			);
+			// tl.to(el, {
+			// 	opacity: 1,
+			// 	y: 0,
+			// }).to(
+			// 	el.children,
+			// 	{
+			// 		opacity: 1,
+			// 		y: 0,
+			// 		stagger: 0.2,
+			// 		onComplete: done,
+			// 	},
+			// 	"<0.5"
+			// );
+
+			return tl;
+		};
+
+		const onBeforeEnter = (el) => {
+			el.style.opacity = 0;
+			el.style.transform = "translateY(50px)";
+
+			const items = [...el.children];
+			console.log(items);
+			items.forEach((item) => {
+				item.transform = "translateY(25px)";
+				item.style.opacity = 0;
+			});
+		};
+
+		// const onEnter = (el, done) => {
+		// 	animateDropDown(el, done).play();
+		// };
+		const onEnter = (el, done) => {
+			animateDropDown(el, done).play();
+		};
+		const onBeforeLeave = (el, done) => {
+			// animateDropDown(el, done).reverse();
+
+			console.log("before leave");
+		};
+		const onLeave = (el, done) => {
+			animateDropDown(el, done).timeScale(2).reverse();
+			console.log("leave");
 		};
 
 		return {
@@ -252,6 +349,11 @@ export default {
 			handleSearch,
 			handleFilter,
 			countries__container,
+
+			onBeforeEnter,
+			onEnter,
+			onBeforeLeave,
+			onLeave,
 		};
 	},
 };
