@@ -364,7 +364,7 @@ form {
 
 .fade-enter-from, .fade-enter-to {
 	opacity: 0;
-	transform: translateY(-1-px);
+	transform: translateY(-1px);
 }
 .fade-enter-active, .fade-leave-active {
 	transition: all .3s linear;

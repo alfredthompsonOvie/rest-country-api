@@ -32,11 +32,10 @@
 				<!-- class="options"
 				:class="isDarkTheme ? ['el__dark'] : ['el__light']" -->
 				<!-- v-if="showOptions" -->
-				<TransitionGroup
+				<Transition
 					appear
 					@before-enter="onBeforeEnter"
 					@enter="onEnter"
-					@before-leave="onBeforeLeave"
 					@leave="onLeave"
 					:css="false"
 				>
@@ -46,95 +45,96 @@
 						v-if="showOptions"
 					>
 						<li
-							v-for="(option, idx) in filterOptions"
+							v-for="option in filterOptions"
 							:key="option"
 							@click.prevent="handleFilter(option)"
 							class="options__item"
-							:data-index="idx"
+							
 						>
 							{{ option }}
 						</li>
 					</ul>
-				</TransitionGroup>
-
-				<!-- <ul
-					class="options"
-					:class="isDarkTheme ? ['el__dark'] : ['el__light']"
-					v-if="showOptions"
-				>
-					<li
-						v-for="option in filterOptions"
-						:key="option"
-						@click.prevent="handleFilter(option)"
-						class="options__item"
-					>
-						{{ option }}
-					</li>
-				</ul> -->
+				</Transition>
 			</div>
 		</section>
 
-		<section class="countries__wrapper" ref="countries__container">
+		<section class="" ref="countries__container">
 			<div class="error loadingData" v-if="error">
 				{{ error }}
 			</div>
 
 			<template v-if="countries.length">
-				<Tilt
-					:options="{
-						parallax: true,
-						glare: true,
-						'max-glare': 0.2,
-						axis: 'x',
-						reverse: true,
-					}"
-					class="card"
-					:class="isDarkTheme ? 'el__dark' : 'el__light'"
-					v-for="country in countries"
-					:key="country.name"
+				<TransitionGroup
+				appear
+					@before-enter="onBeforeCardEnter"
+					@enter="onCardEnter"
+					:css="false"
+					tag="ul"
+					class="countries__wrapper"
 				>
-					<router-link
-						:to="{
-							name: 'detailsView',
-							params: {
-								id: country.name,
-							},
-						}"
-					>
-						<div class="flag">
-							<img :src="country.flags.svg" alt="" />
-						</div>
-						<div class="card__contents">
-							<h3 class="card__title">{{ country.name }}</h3>
-							<p class="card__details">
-								Population:
-								<span class="card__content--result">{{
-									country.population.toLocaleString("en-US")
-								}}</span>
-							</p>
-							<p class="card__details">
-								Region:
-								<span class="card__content--result">{{ country.region }}</span>
-							</p>
-							<p class="card__details">
-								Capital:
-								<span class="card__content--result">{{ country.capital }}</span>
-							</p>
-						</div>
-					</router-link>
-				</Tilt>
+				<li
+				
+						v-for="(country, idx) in countries"
+						:key="country.name"
+						:data-index="idx">
+						<Tilt
+							:options="{
+								parallax: true,
+								glare: true,
+								'max-glare': 0.2,
+								axis: 'x',
+								reverse: true,
+							}"
+							class="card"
+						:class="isDarkTheme ? 'el__dark' : 'el__light'"
+							
+						>
+							<router-link
+								:to="{
+									name: 'detailsView',
+									params: {
+										id: country.name,
+									},
+								}"
+							>
+								<div class="flag">
+									<img :src="country.flags.svg" alt="" />
+								</div>
+								<div class="card__contents">
+									<h3 class="card__title">{{ country.name }}</h3>
+									<p class="card__details">
+										Population:
+										<span class="card__content--result">{{
+											country.population.toLocaleString("en-US")
+										}}</span>
+									</p>
+									<p class="card__details">
+										Region:
+										<span class="card__content--result">{{ country.region }}</span>
+									</p>
+									<p class="card__details">
+										Capital:
+										<span class="card__content--result">{{ country.capital }}</span>
+									</p>
+								</div>
+							</router-link>
+						</Tilt>
+					</li>
+				</TransitionGroup>
 			</template>
 
 			<!-- spinner -->
-			<!-- <div v-else class="loadingData">
-				<p>Loading...</p>
-			</div> -->
+			<div v-if="spinner" class="loadingData">
+				<p 
+				:class="isDarkTheme ? 'el__dark' : 'el__light'"
+				>Loading...</p>
+			</div>
 		</section>
 	</main>
 </template>
 
 <script>
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, TransitionGroup } from "vue";
 import getCountries from "@/composables/getCountries";
 import Tilt from "vanilla-tilt-vue";
 
@@ -143,8 +143,9 @@ import { gsap } from "gsap";
 export default {
 	name: "HomeView",
 	components: {
-		Tilt,
-	},
+    Tilt,
+    TransitionGroup
+},
 	props: {
 		isDarkTheme: {
 			type: Boolean,
@@ -163,6 +164,7 @@ export default {
 		const searchInputField = ref("");
 		const filterBy = ref("");
 		const continent = ref([]);
+		const spinner = ref(false)
 
 		// countries to render
 		const countries = ref([]);
@@ -200,6 +202,14 @@ export default {
 			) {
 				//load more data
 				countriesToRender(countries.value.length, 8, continent.value);
+			}
+
+			if (
+				countriesContainer.getBoundingClientRect().bottom <
+					window.innerHeight 
+			) {
+				//show spinner
+				spinner.value = true
 			}
 		};
 
@@ -274,67 +284,83 @@ export default {
 		const animateDropDown = () => {
 			const tl = gsap.timeline({
 				defaults: {
-					ease: "expo",
+					ease: "power4.out",
+					duration: 1,
 				},
 				paused: true,
 			});
 
-			tl.to(".options", {
+			tl.fromTo(".options", {
+				opacity: 0,
+				rotateY: "90deg"
+			},{
 				opacity: 1,
-				y: 0,
-			}).to(
-				".options__item",
+				rotateY: "0deg",
+				onComplete: () =>
+					gsap.to(".options", {
+						clearProps: "all",
+					}),
+			}).fromTo(
+				".options__item", {
+					opacity: 0,
+					y: 10,
+				},
 				{
 					opacity: 1,
 					y: 0,
 					stagger: 0.2,
-					// onComplete: done,
+					onComplete: () =>
+						gsap.to(".options__item", {
+							clearProps: "all",
+						}),
 				},
-				"<0.5"
+				"<0.3"
 			);
-			// tl.to(el, {
-			// 	opacity: 1,
-			// 	y: 0,
-			// }).to(
-			// 	el.children,
-			// 	{
-			// 		opacity: 1,
-			// 		y: 0,
-			// 		stagger: 0.2,
-			// 		onComplete: done,
-			// 	},
-			// 	"<0.5"
-			// );
 
 			return tl;
 		};
 
 		const onBeforeEnter = (el) => {
 			el.style.opacity = 0;
-			el.style.transform = "translateY(50px)";
+			el.style.transform = "rotateY(90deg)";
 
+			// to animate the li
 			const items = [...el.children];
-			console.log(items);
 			items.forEach((item) => {
-				item.transform = "translateY(25px)";
+				item.style.transform = "translateY(10px)";
 				item.style.opacity = 0;
 			});
+			// console.log(items);
 		};
 
-		// const onEnter = (el, done) => {
-		// 	animateDropDown(el, done).play();
-		// };
 		const onEnter = (el, done) => {
-			animateDropDown(el, done).play();
+			animateDropDown().play();
+			done();
 		};
-		const onBeforeLeave = (el, done) => {
-			// animateDropDown(el, done).reverse();
-
-			console.log("before leave");
-		};
+		// fix this
 		const onLeave = (el, done) => {
-			animateDropDown(el, done).timeScale(2).reverse();
+			animateDropDown().timeScale(0.5).reverse();
+			done();
+
 			console.log("leave");
+		};
+
+
+		// animating the country info
+		const onBeforeCardEnter = (el) => {
+			el.style.opacity = 0;
+			el.style.transform = "translateY(15px)";
+		};
+		const onCardEnter = (el, done) => {
+			gsap.to(el, {
+				opacity: 1, 
+				y: 0,
+				delay: el.dataset.index * 0.005,
+				duration: 1,
+				// stagger: 0.2,
+				ease: "power4",
+			})
+			done();
 		};
 
 		return {
@@ -352,8 +378,11 @@ export default {
 
 			onBeforeEnter,
 			onEnter,
-			onBeforeLeave,
 			onLeave,
+			onBeforeCardEnter,
+			onCardEnter,
+
+			spinner
 		};
 	},
 };
