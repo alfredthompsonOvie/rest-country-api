@@ -1,7 +1,7 @@
 <template>
 	<main :class="isDarkTheme ? 'main__dark' : 'main__light'">
 		<section class="search__wrapper">
-			<form @submit.prevent="handleSearch">
+			<form @submit.prevent="">
 				<label for=""></label>
 				<input
 					v-model="searchInputField"
@@ -15,47 +15,7 @@
 				/>
 				<font-awesome-icon icon="fa-solid fa-magnifying-glass" />
 			</form>
-			<div class="filter__dropdown">
-				<button
-					class="btn__filter"
-					:class="isDarkTheme ? ['el__dark'] : ['el__light']"
-					@click.prevent="showOptions = !showOptions"
-				>
-					<span>Filter by Region</span>
-					<font-awesome-icon
-						icon="fa-solid fa-angle-down"
-						:class="{ animateAngleIcon: showOptions }"
-					/>
-				</button>
-				<!-- tag="ul"
-				name="fade" -->
-				<!-- class="options"
-				:class="isDarkTheme ? ['el__dark'] : ['el__light']" -->
-				<!-- v-if="showOptions" -->
-				<Transition
-					appear
-					@before-enter="onBeforeEnter"
-					@enter="onEnter"
-					@leave="onLeave"
-					:css="false"
-				>
-					<ul
-						class="options"
-						:class="isDarkTheme ? ['el__dark'] : ['el__light']"
-						v-if="showOptions"
-					>
-						<li
-							v-for="option in filterOptions"
-							:key="option"
-							@click.prevent="handleFilter(option)"
-							class="options__item"
-							
-						>
-							{{ option.displayName }}
-						</li>
-					</ul>
-				</Transition>
-			</div>
+			<FilterBy :isDarkTheme="isDarkTheme" @option="handleFilter"/>
 		</section>
 
 		<section class="" ref="countries__container">
@@ -140,11 +100,14 @@ import Tilt from "vanilla-tilt-vue";
 
 import { gsap } from "gsap";
 
+import FilterBy from "../components/FilterBy.vue";
+
 export default {
 	name: "HomeView",
 	components: {
     Tilt,
-    TransitionGroup
+		TransitionGroup,
+		FilterBy
 },
 	props: {
 		isDarkTheme: {
@@ -152,29 +115,6 @@ export default {
 		},
 	},
 	setup() {
-		const showOptions = ref(false);
-		const filterOptions = ref([
-			{
-				displayName: "Africa",
-				searchTerm: "Africa"
-			},
-			{
-				displayName: "America",
-				searchTerm: "Americas"
-			},
-			{
-				displayName: "Asia",
-				searchTerm: "Asia"
-			},
-			{
-				displayName: "Europe",
-				searchTerm: "Europe"
-			},
-			{
-				displayName: "Oceania",
-				searchTerm: "Oceania"
-			},
-		]);
 		const countries__container = ref(null);
 		const searchInputField = ref("");
 		const filterBy = ref("");
@@ -281,7 +221,7 @@ export default {
 			if (newVal) {
 				continent.value = [];
 				continent.value = restCountries.value.filter((c) => {
-					return c.region === newVal.searchTerm;
+					return c.region === newVal;
 				});
 				countries.value = [];
 				countriesToRender(countries.value.length, 8, continent.value);
@@ -290,91 +230,9 @@ export default {
 
 		function handleFilter(opt) {
 			filterBy.value = opt;
-			showOptions.value = false;
 			searchInputField.value = "";
 		}
 		const handleSearch = () => {};
-
-		//
-		const animateDropDown = (el) => {
-			const listItem = [...el.children];
-			const tl = gsap.timeline({
-				defaults: {
-					ease: "power4.out",
-					duration: 1,
-				},
-				paused: true,
-			});
-
-			tl.fromTo(el, {
-				opacity: 0,
-				rotateY: "90deg"
-			},{
-				opacity: 1,
-				rotateY: "0deg",
-				onComplete: () =>
-					gsap.to(el, {
-						clearProps: "all",
-					}),
-			}).fromTo(
-				listItem, {
-					opacity: 0,
-					scale: 1,
-					y: 10,
-				},
-				{
-					opacity: 1,
-					y: 0,
-					stagger: 0.2,
-				// 	onComplete: () =>
-				// 		gsap.to(".options__item", {
-				// 			clearProps: "all",
-				// 		}),
-				},
-				"-=0.9"
-			);
-
-			return tl;
-		};
-
-		const onBeforeEnter = (el) => {
-			const items = [...el.children];
-
-			gsap.set(el, {
-				opacity: 0,
-				rotateY: "90deg"
-			})
-			gsap.set(items, {
-				opacity: 0,
-				scale: 0,
-				y: 10,
-			})
-		};
-
-		const onEnter = (el, done) => {
-			animateDropDown(el).play();
-			done();
-		};
-		// fix this
-		const onLeave = (el, done) => {
-			console.log("leave");
-			const items = [...el.children];
-			const tl = gsap.timeline()
-			// animateDropDown(el).timeScale(0.5).reverse();
-			tl.to(items, {
-				opacity: 0,
-				scale: 0,
-				transformOrigin: "left",
-				// y: 10,
-				stagger: 0.1
-			})
-			.to(el, {
-				opacity: 0,
-				rotateY: "90deg",
-				onComplete: done
-			})
-			// done();
-		};
 
 
 		// animating the country info
@@ -395,21 +253,15 @@ export default {
 		};
 
 		return {
-			showOptions,
-			filterOptions,
 			filterBy,
 			searchInputField,
 			countries,
-
 			error,
 
 			handleSearch,
 			handleFilter,
 			countries__container,
 
-			onBeforeEnter,
-			onEnter,
-			onLeave,
 			onBeforeCardEnter,
 			onCardEnter,
 
