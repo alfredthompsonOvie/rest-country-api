@@ -51,7 +51,7 @@
 							class="options__item"
 							
 						>
-							{{ option }}
+							{{ option.displayName }}
 						</li>
 					</ul>
 				</Transition>
@@ -154,11 +154,26 @@ export default {
 	setup() {
 		const showOptions = ref(false);
 		const filterOptions = ref([
-			"Africa",
-			"Americas",
-			"Asia",
-			"Europe",
-			"Oceania",
+			{
+				displayName: "Africa",
+				searchTerm: "Africa"
+			},
+			{
+				displayName: "America",
+				searchTerm: "Americas"
+			},
+			{
+				displayName: "Asia",
+				searchTerm: "Asia"
+			},
+			{
+				displayName: "Europe",
+				searchTerm: "Europe"
+			},
+			{
+				displayName: "Oceania",
+				searchTerm: "Oceania"
+			},
 		]);
 		const countries__container = ref(null);
 		const searchInputField = ref("");
@@ -266,7 +281,7 @@ export default {
 			if (newVal) {
 				continent.value = [];
 				continent.value = restCountries.value.filter((c) => {
-					return c.region === newVal;
+					return c.region === newVal.searchTerm;
 				});
 				countries.value = [];
 				countriesToRender(countries.value.length, 8, continent.value);
@@ -281,7 +296,8 @@ export default {
 		const handleSearch = () => {};
 
 		//
-		const animateDropDown = () => {
+		const animateDropDown = (el) => {
+			const listItem = [...el.children];
 			const tl = gsap.timeline({
 				defaults: {
 					ease: "power4.out",
@@ -290,59 +306,74 @@ export default {
 				paused: true,
 			});
 
-			tl.fromTo(".options", {
+			tl.fromTo(el, {
 				opacity: 0,
 				rotateY: "90deg"
 			},{
 				opacity: 1,
 				rotateY: "0deg",
 				onComplete: () =>
-					gsap.to(".options", {
+					gsap.to(el, {
 						clearProps: "all",
 					}),
 			}).fromTo(
-				".options__item", {
+				listItem, {
 					opacity: 0,
+					scale: 1,
 					y: 10,
 				},
 				{
 					opacity: 1,
 					y: 0,
 					stagger: 0.2,
-					onComplete: () =>
-						gsap.to(".options__item", {
-							clearProps: "all",
-						}),
+				// 	onComplete: () =>
+				// 		gsap.to(".options__item", {
+				// 			clearProps: "all",
+				// 		}),
 				},
-				"<0.3"
+				"-=0.9"
 			);
 
 			return tl;
 		};
 
 		const onBeforeEnter = (el) => {
-			el.style.opacity = 0;
-			el.style.transform = "rotateY(90deg)";
-
-			// to animate the li
 			const items = [...el.children];
-			items.forEach((item) => {
-				item.style.transform = "translateY(10px)";
-				item.style.opacity = 0;
-			});
-			// console.log(items);
+
+			gsap.set(el, {
+				opacity: 0,
+				rotateY: "90deg"
+			})
+			gsap.set(items, {
+				opacity: 0,
+				scale: 0,
+				y: 10,
+			})
 		};
 
 		const onEnter = (el, done) => {
-			animateDropDown().play();
+			animateDropDown(el).play();
 			done();
 		};
 		// fix this
 		const onLeave = (el, done) => {
-			animateDropDown().timeScale(0.5).reverse();
-			done();
-
 			console.log("leave");
+			const items = [...el.children];
+			const tl = gsap.timeline()
+			// animateDropDown(el).timeScale(0.5).reverse();
+			tl.to(items, {
+				opacity: 0,
+				scale: 0,
+				transformOrigin: "left",
+				// y: 10,
+				stagger: 0.1
+			})
+			.to(el, {
+				opacity: 0,
+				rotateY: "90deg",
+				onComplete: done
+			})
+			// done();
 		};
 
 
