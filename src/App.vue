@@ -1,6 +1,15 @@
-<template>
+<template >
   <AppNav @changeTheme="changeTheme" :isDarkTheme="isDarkTheme"/>
-  <router-view :isDarkTheme="isDarkTheme"></router-view>
+
+  <router-view 
+  :isDarkTheme="isDarkTheme"
+  v-slot="{ Component }"
+  >
+  <Transition name="slide" mode="out-in">
+    <component :is="Component" /> 
+  </Transition>
+  </router-view>
+
 </template>
 
 <script>
@@ -25,6 +34,12 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-
+<style scoped>
+/* .slide-enter-from  section, .slide-leave-to section {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.slide-enter-active, .slide-leave-active {
+  transition: all 3s linear;
+} */
 </style>
