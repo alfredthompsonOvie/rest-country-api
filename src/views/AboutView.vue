@@ -91,7 +91,7 @@
 </template>
 
 <script>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import { useInfiniteScroll } from "@vueuse/core";
 import FilterBy from "../components/FilterBy.vue";
 import Tilt from "vanilla-tilt-vue";
@@ -112,8 +112,15 @@ export default {
 		const filterBy = ref("");
 		const cardAnimationDelay = ref(0);
 
+		// let skip = ref(dataToRender.value.length);
+		let maxContent = ref(8);
+
 		watch(allData, () => {
-			loadData();
+			// loadData();
+			// handleScroll();
+			dataToRender.value = noFilter(allData.value, dataToRender.value.length, maxContent.value);
+			console.log(dataToRender.value);
+
 		});
 		watch(filterBy, (val) => {
 			dataToRender.value = allData.value.filter((d) => d.region === val);
@@ -211,9 +218,10 @@ export default {
 
 		
 		// 1. fetch all data into an array allData/ resources
-		// if allData has data then
+		// (watch allData) if allData has data then
 		// =====initial render===== //
 		// 2. use a fn to get data to render
+		// =====on scroll render===== //
 		// 3. call the same fn again to load more data
 		// 2. store in an arr and  display only 8 at a time
 		// loadData(search)=> if(search)
@@ -222,7 +230,11 @@ export default {
 		// initial data load || load more data
 		// where s = startIndex, e = endIndex
 		// f(arr, s, e) =>arr.slice(s,e)
-		const noFilter = (arr, s, e) => arr.slice(s, e);
+		const noFilter = (arr, s, e) => {
+			s = dataToRender.value.length;
+			e += s;
+			return arr.slice(s, e)
+		};
 
 		// these are the g(x) | g(x) returns an arr
 		// sFn(arr, st)=> arr.filter(d=>d.name.includes(st))
@@ -231,24 +243,36 @@ export default {
 		//compose
 		// check if dataToRender is empty
 		// check height of dataToRender to load more
-		const composeScroll = () => {
-			let cHeight = container.value.getBoundingClientRect().bottom
-			let skip = dataToRender.value.length;
-			let maxContent = 8;
-			if (cHeight < window.innerHeight) {
-				dataToRender.value = noFilter(allData.value, skip, maxContent)
+		const handleScroll = () => {
+			const cHeight = container.value
+			// skip = dataToRender.value.length;
+			// console.log(.value);
+			// let maxContent = maxContent + skip;
+			// maxContent.value += skip.value;
+
+			let newArr = []; 
+			// console.log("window.innerHeight: ",window.innerHeight);
+			// console.log("cHeight: ",cHeight.getBoundingClientRect().bottom);
+			if (cHeight.getBoundingClientRect().bottom < window.innerHeight) {
+				// concat add to the existing data
+				newArr = noFilter(allData.value, dataToRender.value.length, maxContent.value)
+				
+				console.log("skip value: ", dataToRender.value.length);
+				console.log("maxContent value: ", maxContent.value);
 			}
-			console.log("skip value: ", skip);
-			maxContent += skip
-			return dataToRender.value;
+			// return dataToRender.value = [ ...newArr ];
+			dataToRender.value = dataToRender.value.concat(newArr);
+			return  dataToRender.value;
 		}
 
 
 
 
-
-
+		onMounted(() => {
+			window.addEventListener("scroll", handleScroll);
+		});
 		return {
+			container,
 			searchValue,
 			// filterBy,
 			dataToRender,
