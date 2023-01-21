@@ -24,10 +24,14 @@
 			</div>
 
 			<template v-if="allData.length">
-				<!-- appear
+				<TransitionGroup 
+				tag="ul" 
+				appear
 				@before-enter="onBeforeCardEnter"
-				@enter="onCardEnter" -->
-				<TransitionGroup :css="false" tag="ul" class="countries__wrapper">
+				@enter="onCardEnter"
+				:css="false" 
+				class="countries__wrapper"
+				>
 					<li
 						v-for="(country, idx) in dataToRender"
 						:key="country.name"
@@ -91,10 +95,14 @@
 </template>
 
 <script>
-import { ref, watch, computed, onMounted } from "vue";
-import { useInfiniteScroll } from "@vueuse/core";
+import { ref, watch, onMounted } from "vue";
 import FilterBy from "../components/FilterBy.vue";
 import Tilt from "vanilla-tilt-vue";
+
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default {
 	components: {
@@ -107,36 +115,52 @@ export default {
 		const allData = ref([]);
 		const error = ref(null);
 		const dataToRender = ref([]);
-		const totalNumberOfDataToRender = ref(0);
 		const searchValue = ref("");
 		const filterBy = ref("");
 		const cardAnimationDelay = ref(0);
 
 		// let skip = ref(dataToRender.value.length);
-		let maxContent = ref(8);
+		const maxContent = ref(8);
 
 		watch(allData, () => {
 			// loadData();
 			// handleScroll();
-			dataToRender.value = noFilter(allData.value, dataToRender.value.length, maxContent.value);
-			console.log(dataToRender.value);
-
+			dataToRender.value = getData(allData.value, dataToRender.value.length, maxContent.value);
 		});
-		watch(filterBy, (val) => {
-			dataToRender.value = allData.value.filter((d) => d.region === val);
-			// loadData('all', val);
 
-			console.log(val);
-		});
 		watch(searchValue, (val) => {
-			dataToRender.value = allData.value.filter((d) =>
-				d.name.toLowerCase().includes(val.toLowerCase())
-			);
-			// loadData('all', val);
+			dataToRender.value = [];
+
+			if (!val) {
+				dataToRender.value = getData(allData.value, dataToRender.value.length, maxContent.value);
+				return;
+			}
+			// dataToRender.value = [];
+			filterBy.value = "";
+			dataToRender.value = getData(sFn(allData.value, val), dataToRender.value.Length, maxContent.value)
+
 			console.log(val);
 		});
 
-		const getData = async () => {
+		watch(filterBy, (FilterVal) => {
+			if (FilterVal) {
+				dataToRender.value = [];
+
+				console.log(FilterVal);
+
+				dataToRender.value = getData(fFn(allData.value, FilterVal), dataToRender.value.Length, maxContent.value)
+
+				// return dataToRender.value;
+				return;
+			}
+			// dataToRender.value = allData.value.filter((d) => d.region === val);
+			// loadData('all', val);
+			
+			
+		});
+
+
+		const getAPIData = async () => {
 			try {
 				error.value = null;
 				const res = await fetch("https://restcountries.com/v2/all");
@@ -150,7 +174,7 @@ export default {
 				error.value = err.message;
 			}
 		};
-		getData();
+		getAPIData();
 
 		const loadData = () => {
 			// skip += limit/maxContent,  limit/maxContent = 8
@@ -181,13 +205,12 @@ export default {
 			console.log(dataToRender.value);
 		};
 
-		const displayData = computed(() => dataToRender.value);
-		console.log(displayData);
+		// const displayData = computed(() => dataToRender.value);
+		// console.log(displayData);
 
 
 
 
-		// useInfiniteScroll(container, loadData, { distance: 10 });
 
 		// from vueuse
 		// 		useInfiniteScroll(
@@ -211,17 +234,22 @@ export default {
 		// }
 
 		const handleFilter = (opt) => {
+			searchValue.value = "";
 			filterBy.value = opt;
 		};
-		const onBeforeCardEnter = (el) => {};
-		const onCardEnter = (el, done) => { };
+		
 
 		
 		// 1. fetch all data into an array allData/ resources
 		// (watch allData) if allData has data then
 		// =====initial render===== //
 		// 2. use a fn to get data to render
+		// gd(arr, s, e)=>arr.slice(s,e);
+		// dataToRender.value = gd(arr, s, e)
+		// add more
+		// amd(arr1, arr2)=> arr1.concat(arr2) ||arr2 is a fn
 		// =====on scroll render===== //
+		// amd(arr1, gd(arr, s,e))
 		// 3. call the same fn again to load more data
 		// 2. store in an arr and  display only 8 at a time
 		// loadData(search)=> if(search)
@@ -230,15 +258,31 @@ export default {
 		// initial data load || load more data
 		// where s = startIndex, e = endIndex
 		// f(arr, s, e) =>arr.slice(s,e)
-		const noFilter = (arr, s, e) => {
+		const getData = (arr, s, e) => {
 			s = dataToRender.value.length;
 			e += s;
-			return arr.slice(s, e)
+			if (!arr.length) {
+				error.value = "Sorry could not find country"
+			} else {
+				error.value = null
+				return arr.slice(s, e)
+			}
 		};
+			// add more
+		// amd(arr1, arr2)=> arr1.concat(arr2) ||arr2 is a fn
+		// where amd means add more data
+		const addMoreData = (arr1, arr2) => arr1.concat(arr2) 
 
 		// these are the g(x) | g(x) returns an arr
 		// sFn(arr, st)=> arr.filter(d=>d.name.includes(st))
+		// where st = search term, sFn = search function
+		// d.name.toLowerCase().includes(val.toLowerCase()
+		const sFn = (arr,st) => arr.filter(d=>d.name.toLowerCase().includes(st.toLowerCase()))
+
+		// filter function 
+		// where ft = filter term, fFn = filter function
 		// fFn(arr,ft)=>arr.filter(d=>d.region===ft)
+		const fFn = (arr, ft) => arr.filter(d => d.region === ft);
 
 		//compose
 		// check if dataToRender is empty
@@ -253,16 +297,58 @@ export default {
 			let newArr = []; 
 			// console.log("window.innerHeight: ",window.innerHeight);
 			// console.log("cHeight: ",cHeight.getBoundingClientRect().bottom);
-			if (cHeight.getBoundingClientRect().bottom < window.innerHeight) {
+			
+			//check for search
+			if (cHeight.getBoundingClientRect().bottom < window.innerHeight
+				&& searchValue.value) {
 				// concat add to the existing data
-				newArr = noFilter(allData.value, dataToRender.value.length, maxContent.value)
+				
+				//  getData(sFn(allData.value), dataToRender.value.Length, maxContent.value)
+				newArr = getData(sFn(allData.value, searchValue.value), dataToRender.value.length, maxContent.value);
+
+				dataToRender.value = addMoreData(dataToRender.value, newArr);
 				
 				console.log("skip value: ", dataToRender.value.length);
 				console.log("maxContent value: ", maxContent.value);
+				// dataToRender.value = dataToRender.value.concat(newArr);
+				return;
 			}
+
+			//check for filterBy
+			if (cHeight.getBoundingClientRect().bottom < window.innerHeight
+				&& filterBy.value) {
+				// concat add to the existing data
+				// dataToRender.value = [];
+				newArr = getData(fFn(allData.value, filterBy.value), dataToRender.value.length, maxContent.value);
+
+				dataToRender.value = addMoreData(dataToRender.value, newArr);
+
+				
+				console.log("skip value: ", dataToRender.value.length);
+				console.log("maxContent value: ", maxContent.value);
+				// dataToRender.value = dataToRender.value.concat(newArr);
+				return;
+			}
+
+			if (cHeight.getBoundingClientRect().bottom < window.innerHeight
+				&& !searchValue.value && !filterBy.value
+			) {
+				// concat add to the existing data
+				// dataToRender.value = [];
+				// amd(arr1, arr2)=> arr1.concat(arr2) ||arr2 is a fn
+				newArr = getData(allData.value, dataToRender.value.length, maxContent.value)
+				dataToRender.value = addMoreData(dataToRender.value, newArr);
+				console.log("skip value: ", dataToRender.value.length);
+				console.log("maxContent value: ", maxContent.value);
+				// setDelay(".countries__wrapper li", 0)
+				return;
+			}
+
+			console.log("outside the if blocks");
+
 			// return dataToRender.value = [ ...newArr ];
-			dataToRender.value = dataToRender.value.concat(newArr);
-			return  dataToRender.value;
+			// dataToRender.value = dataToRender.value.concat(newArr);
+			return;
 		}
 
 
@@ -271,6 +357,49 @@ export default {
 		onMounted(() => {
 			window.addEventListener("scroll", handleScroll);
 		});
+
+
+		const setDelay = (el) => {
+			// for every 8th element
+			
+			// let d = Number(el.dataset.index);
+			// // console.log(d);
+			// if (d >= 8) {
+
+			// 	el.dataset.index = 0
+			// 	console.log("reset");
+			// return el.dataset.index * 0.2
+
+			// }
+
+			// // for (let i = 0; i < 8; i++){
+
+			// // }
+			// console.log(el);
+			// console.log(d);
+			return el.dataset.index * 0.15
+
+		};
+
+		const onBeforeCardEnter = (el) => {
+			gsap.set(el, {
+				opacity: 0,
+				y: 20,
+			}) 
+
+		};
+		const onCardEnter = (el, done) => {
+			// console.log(el);
+			gsap.to(el, {
+				opacity: 1,
+				y: 0,
+				ease: "back",
+				// delay: setDelay(el),
+				scrollTrigger: ".card",
+				onComplete: done
+			})
+		};
+
 		return {
 			container,
 			searchValue,

@@ -6,6 +6,7 @@
 				<input
 					v-model="searchInputField"
 					type="search"
+					arial-label="search for a country"
 					:class="
 						isDarkTheme
 							? ['el__dark', 'input__dark']
