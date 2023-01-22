@@ -62,7 +62,7 @@
 									<img :src="country.flags.svg" alt="" />
 								</div>
 								<div class="card__contents">
-									<h3 class="card__title">{{ country.name }}</h3>
+									<h1 class="card__title">{{ country.name }}</h1>
 									<p class="card__details">
 										Population:
 										<span class="card__content--result">{{

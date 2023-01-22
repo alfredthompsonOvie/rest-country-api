@@ -229,6 +229,9 @@ form {
 .card__title {
 	margin-bottom: 0.7em;
 }
+.card__contents .card__title {
+	font-size: 1.02375rem;
+}
 .card__content--result {
 	color: var(--DarkGray-LightModeInput);
 }
