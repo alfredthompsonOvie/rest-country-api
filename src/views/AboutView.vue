@@ -37,51 +37,45 @@
 						:key="country.name"
 						:data-index="idx"
 					>
-						<Tilt
-							:options="{
-								parallax: true,
-								glare: true,
-								'max-glare': 0.2,
-								axis: 'x',
-								reverse: true,
+					<section
+					class="card"
+					:class="isDarkTheme ? 'el__dark' : 'el__light'"
+					>
+						
+						<router-link
+							:to="{
+								name: 'detailsView',
+								params: {
+									id: country.name,
+								},
 							}"
-							class="card"
-							:class="isDarkTheme ? 'el__dark' : 'el__light'"
 						>
-							<router-link
-								:to="{
-									name: 'detailsView',
-									params: {
-										id: country.name,
-									},
-								}"
-							>
-								<div class="flag">
-									<img :src="country.flags.svg" alt="" />
-								</div>
-								<div class="card__contents">
-									<h3 class="card__title">{{ country.name }}</h3>
-									<p class="card__details">
-										Population:
-										<span class="card__content--result">{{
-											country.population.toLocaleString("en-US")
-										}}</span>
-									</p>
-									<p class="card__details">
-										Region:
-										<span class="card__content--result">{{
-											country.region
-										}}</span>
-									</p>
-									<p class="card__details">
-										Capital:
-										<span class="card__content--result">{{
-											country.capital
-										}}</span>
-									</p>
-								</div>
-							</router-link>
-						</Tilt>
+							<div class="flag">
+								<img :src="country.flags.svg" alt="" />
+							</div>
+							<div class="card__contents">
+								<h3 class="card__title">{{ country.name }}</h3>
+								<p class="card__details">
+									Population:
+									<span class="card__content--result">{{
+										country.population.toLocaleString("en-US")
+									}}</span>
+								</p>
+								<p class="card__details">
+									Region:
+									<span class="card__content--result">{{
+										country.region
+									}}</span>
+								</p>
+								<p class="card__details">
+									Capital:
+									<span class="card__content--result">{{
+										country.capital
+									}}</span>
+								</p>
+							</div>
+						</router-link>
+						</section>
 					</li>
 				</TransitionGroup>
 			</template>
@@ -97,7 +91,6 @@
 <script>
 import { ref, watch, onMounted } from "vue";
 import FilterBy from "../components/FilterBy.vue";
-import Tilt from "vanilla-tilt-vue";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -107,7 +100,6 @@ gsap.registerPlugin(ScrollTrigger);
 export default {
 	components: {
 		FilterBy,
-		Tilt,
 	},
 	props: ["isDarkTheme"],
 	setup() {
@@ -358,28 +350,6 @@ export default {
 			window.addEventListener("scroll", handleScroll);
 		});
 
-
-		const setDelay = (el) => {
-			// for every 8th element
-			
-			// let d = Number(el.dataset.index);
-			// // console.log(d);
-			// if (d >= 8) {
-
-			// 	el.dataset.index = 0
-			// 	console.log("reset");
-			// return el.dataset.index * 0.2
-
-			// }
-
-			// // for (let i = 0; i < 8; i++){
-
-			// // }
-			// console.log(el);
-			// console.log(d);
-			return el.dataset.index * 0.15
-
-		};
 
 		const onBeforeCardEnter = (el) => {
 			gsap.set(el, {
