@@ -14,17 +14,22 @@
 
 <script>
 import AppNav from "@/components/AppNav.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 export default {
   components: {
     AppNav
   },
-  setup () {
+  setup() {
     const isDarkTheme = ref(true);
 
     const changeTheme = (value) => {
       isDarkTheme.value = value
     }
+    watch(isDarkTheme, () => {
+      localStorage.setItem("themeState", isDarkTheme.value)
+    })
+    // onCreated
+    isDarkTheme.value = JSON.parse(localStorage.getItem('themeState'));
 
     return {
       isDarkTheme,

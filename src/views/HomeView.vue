@@ -20,9 +20,9 @@
 		</section>
 
 		<section class="" ref="countries__container">
-			<div class="error loadingData" v-if="error">
+			<p class="error loadingData" v-if="error">
 				{{ error }}
-			</div>
+			</p>
 
 			<template v-if="countries.length">
 				<TransitionGroup
@@ -262,3 +262,10 @@ export default {
 	},
 };
 </script>
+
+<style>
+.loadingData {
+	color: red;
+	margin-top: 3em;
+}
+</style>
