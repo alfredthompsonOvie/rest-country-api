@@ -29,7 +29,7 @@ export default {
       localStorage.setItem("themeState", isDarkTheme.value)
     })
     // onCreated
-    isDarkTheme.value = JSON.parse(localStorage.getItem('themeState'));
+    isDarkTheme.value = JSON.parse(localStorage.getItem('themeState')) || true;
 
     return {
       isDarkTheme,
